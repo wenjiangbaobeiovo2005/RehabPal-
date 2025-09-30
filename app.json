@@ -1,11 +1,11 @@
 {
   "expo": {
-    "name": "rehabAIfms",
-    "slug": "rehabAIfms",
+    "name": "AIFMS-Rehab",
+    "slug": "aifms-rehab",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "rehabaifms",
+    "scheme": "aifms-rehab",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {

@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>MediaPipe Pose Estimation</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+        }
+        #video, #canvas {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <video id="video" playsinline autoplay muted></video>
+    <canvas id="canvas"></canvas>
+
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils@0.3.1626848346/camera_utils.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/pose@0.4.1635989137/pose.js"></script>
+
+    <script>
+        const videoElement = document.getElementById('video');
+
+        function onResults(results) {
+            try {
+                // 只发送x, y, z坐标
+                if (results.poseLandmarks) {
+                    const simplifiedLandmarks = results.poseLandmarks.map(landmark => ({
+                        x: landmark.x,
+                        y: landmark.y,
+                        z: landmark.z
+                    }));
+                    
+                    // 通过postMessage发送关键点数据
+                    if (window.ReactNativeWebView) {
+                        window.ReactNativeWebView.postMessage(JSON.stringify(simplifiedLandmarks));
+                    }
+                }
+            } catch (error) {
+                console.error('Error processing pose landmarks:', error);
+            }
+        }
+
+        const pose = new Pose({
+            locateFile: (file) => {
+                return `https://cdn.jsdelivr.net/npm/@mediapipe/pose@0.4.1635989137/${file}`;
+            }
+        });
+        
+        pose.setOptions({
+            modelComplexity: 1,
+            smoothLandmarks: true,
+            minDetectionConfidence: 0.5,
+            minTrackingConfidence: 0.5,
+            staticImageMode: false
+        });
+        
+        pose.onResults(onResults);
+
+        const camera = new Camera(videoElement, {
+            onFrame: async () => {
+                try {
+                    await pose.send({image: videoElement});
+                } catch (error) {
+                    console.error('Error sending frame to pose estimation:', error);
+                }
+            },
+            width: 1280,
+            height: 720,
+            facingMode: 'user' // 仅使用前置摄像头
+        });
+        
+        // 启动摄像头
+        camera.start().catch(error => {
+            console.error('Error starting camera:', error);
+        });
+    </script>
+</body>
+</html>
